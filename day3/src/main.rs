@@ -5,6 +5,7 @@ use std::io::{self, prelude::*, BufReader};
 #[derive(Debug, PartialEq)]
 enum Token {
     Number(usize, usize),
+    Gear,
     Symbol,
 }
 
@@ -46,11 +47,13 @@ fn parse_line(row: usize, line: &str) -> Vec<((usize, usize), Token)> {
         if ch.is_ascii_digit() {
             digit.push(ch);
         } else if let Ok(d) = digit.parse::<usize>() {
-            digits.push(((row, i - digit.len()), Token::Number(d, digit.len())));
+            for j in 0..=digit.len() {
+                digits.push(((row, i - j), Token::Number(d, digit.len())));
+            }
             digit.clear();
         }
-        if !ch.is_ascii_digit() && ch.ne(&'.') {
-            digits.push(((row, i), Token::Symbol));
+        if ch.eq(&'*') {
+            digits.push(((row, i), Token::Gear));
         }
     }
 
@@ -79,9 +82,7 @@ fn main() -> io::Result<()> {
         .iter()
         .filter_map(|(pos, _)| validate_token(&schematic, pos.clone()))
         .fold(0, |acc, t| match t {
-            Token::Number(val, _) => {
-                acc + val
-            }
+            Token::Number(val, _) => acc + val,
             _ => acc,
         });
 
