@@ -43,6 +43,18 @@ struct AttributeRange {
     len: usize,
 }
 
+#[derive(Debug)]
+struct SeedRange {
+    start: usize,
+    len: usize,
+}
+
+impl SeedRange {
+    fn vectorize(&self) -> Vec<usize> {
+        (self.start..self.start + self.len).collect()
+    }
+}
+
 impl AttributeRange {
     fn contains(&self, val: usize) -> bool {
         (self.src..self.src + self.len).contains(&val)
@@ -83,6 +95,14 @@ fn main() -> io::Result<()> {
         .filter_map(|x| x.parse::<usize>().ok())
         .collect::<Vec<usize>>();
 
+    let seeds = seeds
+        .iter()
+        .step_by(2)
+        .zip(seeds.iter().skip(1).step_by(2))
+        .map(|(start, len)| (start.clone(), len.clone()))
+        .map(|(start, len)| SeedRange { start, len })
+        .collect::<Vec<SeedRange>>();
+
     let mut new_block = false;
 
     let mut attrs = Vec::new();
@@ -111,6 +131,11 @@ fn main() -> io::Result<()> {
     }
 
     let res = seeds
+        .iter()
+        .fold(Vec::new(), |mut acc, range| {
+            acc.extend(range.vectorize());
+            acc
+        })
         .iter()
         .map(|s| s.clone())
         .map(|s| attrs.iter().fold(s, |acc, m| m.map(acc)))
