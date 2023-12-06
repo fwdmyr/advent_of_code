@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, prelude::*, BufReader};
+use std::ops::Add;
 
 #[derive(Debug)]
 struct Card {
@@ -61,11 +62,17 @@ fn main() -> io::Result<()> {
         .map(|card| CardResult::new(card.winners.intersection(&card.numbers).count(), 1))
         .collect::<Vec<CardResult>>();
 
-    for i in 0..results.len() {}
+    for i in 0..results.len() {
+        for _ in 0..results[i].cardinality {
+            for j in 1..=results[i].matches {
+                results[i + j].cardinality += 1;
+            }
+        }
+    }
 
-    todo!("Collect into vector and process card-by-card");
+    let sum = results.iter().fold(0, |acc, res| acc + res.cardinality);
 
-    // println!("{}", sum);
+    println!("{}", sum);
 
     Ok(())
 }
